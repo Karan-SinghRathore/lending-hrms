@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { CHECKLISTS, DESIGNATIONS, LEAVE_TYPES } from "@/lib/config";
 import { parseDate, todayStr } from "@/lib/dates";
-import { AppError, canSee, employeeScope, type Viewer } from "./viewer";
+import { AppError, canSee, employeeScope, type Viewer, oid } from "./viewer";
 
 export async function listEmployees(v: Viewer) {
   return db.employee.findMany({
@@ -11,7 +11,7 @@ export async function listEmployees(v: Viewer) {
   });
 }
 
-export async function getEmployee(v: Viewer, id: number) {
+export async function getEmployee(v: Viewer, id: string) {
   const emp = await db.employee.findUnique({
     where: { id },
     include: { branch: true, manager: { select: { id: true, name: true, designation: true } }, reports: { select: { id: true } } },
@@ -30,13 +30,13 @@ export type EmployeeInput = {
   phone: string;
   gender: string;
   designation: string;
-  branchId: number;
+  branchId: string;
   joinDate: string;
   monthlyCtc: number;
   status?: string;
 };
 
-async function validate(input: EmployeeInput, selfId?: number) {
+async function validate(input: EmployeeInput, selfId?: string) {
   const name = input.name?.trim();
   const email = input.email?.trim().toLowerCase();
   const phone = String(input.phone ?? "").replace(/\D/g, "");
@@ -45,7 +45,7 @@ async function validate(input: EmployeeInput, selfId?: number) {
   if (phone.length !== 10) throw new AppError("Phone number must be 10 digits.");
   const preset = DESIGNATIONS[input.designation];
   if (!preset) throw new AppError("Choose a designation.");
-  const branch = await db.branch.findUnique({ where: { id: Number(input.branchId) } });
+  const branch = await db.branch.findUnique({ where: { id: oid(input.branchId) } });
   if (!branch) throw new AppError("Choose a branch.");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.joinDate ?? "")) throw new AppError("Choose the date of joining.");
   const ctc = Number(input.monthlyCtc);
@@ -55,7 +55,7 @@ async function validate(input: EmployeeInput, selfId?: number) {
   return { name, email, phone, preset, branch, ctc };
 }
 
-async function branchManagerId(branchId: number, exceptId?: number) {
+async function branchManagerId(branchId: string, exceptId?: string) {
   const bm = await db.employee.findFirst({
     where: { branchId, designation: "Branch Manager", status: "ACTIVE", id: exceptId ? { not: exceptId } : undefined },
   });
@@ -96,7 +96,7 @@ export async function createEmployee(v: Viewer, input: EmployeeInput) {
   return emp;
 }
 
-export async function updateEmployee(v: Viewer, id: number, input: EmployeeInput) {
+export async function updateEmployee(v: Viewer, id: string, input: EmployeeInput) {
   if (v.role !== "HR") throw new AppError("Only HR can edit employee details.", 403);
   const existing = await db.employee.findUnique({ where: { id } });
   if (!existing) throw new AppError("Employee not found.", 404);

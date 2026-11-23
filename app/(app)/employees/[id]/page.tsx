@@ -7,7 +7,7 @@ import { getEmployee, listBranches } from "@/services/employees";
 import { getBalances } from "@/services/leaves";
 import { employeeTargetHistory } from "@/services/targets";
 import { NoAccess } from "@/components/ui/NoAccess";
-import { can, getViewer } from "@/services/viewer";
+import { can, getViewer, oid } from "@/services/viewer";
 
 export const metadata = { title: "Employee" };
 
@@ -15,7 +15,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const viewer = await getViewer();
   if (!can(viewer, "employees")) return <NoAccess module="employees" role={viewer.roleName} />;
-  const emp = await getEmployee(viewer, Number(id));
+  const emp = await getEmployee(viewer, oid(id));
   if (!emp) notFound();
 
   const month = currentMonth();

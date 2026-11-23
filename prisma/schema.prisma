@@ -1,17 +1,17 @@
-// SQLite for the demo. To move to Postgres later: provider = "postgresql"
-// and point DATABASE_URL at the Postgres database.
+// MongoDB (Atlas in production). Prisma needs a replica set, which Atlas always is;
+// for local work use `npm run db:local`.
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Branch {
-  id        Int        @id @default(autoincrement())
-  code      String     @unique
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  code      String       @unique
   name      String
   city      String
   state     String
@@ -22,46 +22,46 @@ model Branch {
 }
 
 model Employee {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  code        String     @unique
   name        String
-  email       String    @unique
+  email       String     @unique
   phone       String
   gender      String
   designation String
   department  String
   // HR | MANAGER | EMPLOYEE — drives what the person can see and do
-  accessRole  String    @default("EMPLOYEE")
+  accessRole  String     @default("EMPLOYEE")
   // The named role decides which modules the person can open; accessRole mirrors role.base.
-  roleId      Int?
-  role        Role?     @relation(fields: [roleId], references: [id])
+  roleId      String?    @db.ObjectId
+  role        Role?      @relation(fields: [roleId], references: [id])
   // SALES | COLLECTION | NONE — which incentive plan applies
-  plan        String    @default("NONE")
+  plan        String     @default("NONE")
   joinDate    DateTime
-  status      String    @default("ACTIVE")
+  status      String     @default("ACTIVE")
   monthlyCtc  Int
-  branchId    Int
-  branch      Branch    @relation(fields: [branchId], references: [id])
-  managerId   Int?
-  manager     Employee? @relation("Reports", fields: [managerId], references: [id])
+  branchId    String     @db.ObjectId
+  branch      Branch     @relation(fields: [branchId], references: [id])
+  managerId   String?    @db.ObjectId
+  manager     Employee?  @relation("Reports", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reports     Employee[] @relation("Reports")
 
-  leaveRequests   LeaveRequest[] @relation("LeaveApplicant")
-  leavesDecided   LeaveRequest[] @relation("LeaveApprover")
+  leaveRequests    LeaveRequest[]       @relation("LeaveApplicant")
+  leavesDecided    LeaveRequest[]       @relation("LeaveApprover")
   leaveAllocations LeaveAllocation[]
-  attendance      Attendance[]
-  targets         Target[]
-  payslips        Payslip[]
-  checklists      ChecklistCase[]
-  appraisals      Appraisal[]
-  letters         Letter[]
-  documents       EmployeeDocument[]
-  trainings       TrainingAssignment[]
+  attendance       Attendance[]
+  targets          Target[]
+  payslips         Payslip[]
+  checklists       ChecklistCase[]
+  appraisals       Appraisal[]
+  letters          Letter[]
+  documents        EmployeeDocument[]
+  trainings        TrainingAssignment[]
 }
 
 model LeaveAllocation {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String   @db.ObjectId
   employee   Employee @relation(fields: [employeeId], references: [id])
   year       Int
   // CL | SL | EL
@@ -72,18 +72,18 @@ model LeaveAllocation {
 }
 
 model LeaveRequest {
-  id         Int       @id @default(autoincrement())
-  employeeId Int
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String    @db.ObjectId
   employee   Employee  @relation("LeaveApplicant", fields: [employeeId], references: [id])
   type       String
-  fromDate   String    // YYYY-MM-DD
-  toDate     String    // YYYY-MM-DD
+  fromDate   String // YYYY-MM-DD
+  toDate     String // YYYY-MM-DD
   halfDay    Boolean   @default(false)
   days       Float
   reason     String
   // PENDING | APPROVED | REJECTED | CANCELLED
   status     String    @default("PENDING")
-  approverId Int?
+  approverId String?   @db.ObjectId
   approver   Employee? @relation("LeaveApprover", fields: [approverId], references: [id])
   remark     String?
   decidedAt  DateTime?
@@ -91,16 +91,16 @@ model LeaveRequest {
 }
 
 model Holiday {
-  id   Int    @id @default(autoincrement())
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
   date String @unique // YYYY-MM-DD
   name String
 }
 
 model Attendance {
-  id         Int       @id @default(autoincrement())
-  employeeId Int
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String    @db.ObjectId
   employee   Employee  @relation(fields: [employeeId], references: [id])
-  date       String    // YYYY-MM-DD
+  date       String // YYYY-MM-DD
   checkIn    DateTime?
   checkOut   DateTime?
   lat        Float?
@@ -113,10 +113,10 @@ model Attendance {
 }
 
 model Target {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String   @db.ObjectId
   employee   Employee @relation(fields: [employeeId], references: [id])
-  month      String   // YYYY-MM
+  month      String // YYYY-MM
   // SALES plan: DISBURSAL (₹), FILES (count)  ·  COLLECTION plan: COLLECTION (₹), RESOLVED (cases)
   metric     String
   target     Float
@@ -129,43 +129,43 @@ model Target {
 }
 
 model IncentiveSlab {
-  id     Int    @id @default(autoincrement())
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
   plan   String // SALES | COLLECTION
-  minPct Float  // score from (inclusive)
+  minPct Float // score from (inclusive)
   maxPct Float? // score up to (exclusive); null = no upper limit
-  amount Int    // ₹ payout
+  amount Int // ₹ payout
 }
 
 model Payslip {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  month       String   // YYYY-MM
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId  String    @db.ObjectId
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  month       String // YYYY-MM
   workingDays Int
   paidDays    Float
-  lopDays     Float    // loss of pay: absent without approved leave
+  lopDays     Float // loss of pay: absent without approved leave
   basic       Int
   hra         Int
   allowance   Int
   incentive   Int
   lopAmount   Int
-  gross       Int      // earnings after loss of pay, including incentive
+  gross       Int // earnings after loss of pay, including incentive
   pf          Int
   esi         Int
   pt          Int
   tds         Int
   net         Int
   // DRAFT | PAID
-  status      String   @default("DRAFT")
+  status      String    @default("DRAFT")
   paidAt      DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   @@unique([employeeId, month])
 }
 
 model ChecklistCase {
-  id         Int             @id @default(autoincrement())
-  employeeId Int
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String          @db.ObjectId
   employee   Employee        @relation(fields: [employeeId], references: [id])
   // JOINING | EXIT
   kind       String
@@ -174,8 +174,8 @@ model ChecklistCase {
 }
 
 model ChecklistTask {
-  id     Int           @id @default(autoincrement())
-  caseId Int
+  id     String        @id @default(auto()) @map("_id") @db.ObjectId
+  caseId String        @db.ObjectId
   case   ChecklistCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
   title  String
   // HR | MANAGER | EMPLOYEE — who is expected to complete it
@@ -187,7 +187,7 @@ model ChecklistTask {
 }
 
 model AppraisalCycle {
-  id         Int         @id @default(autoincrement())
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
   name       String
   fromMonth  String
   toMonth    String
@@ -198,12 +198,12 @@ model AppraisalCycle {
 }
 
 model Appraisal {
-  id             Int            @id @default(autoincrement())
-  cycleId        Int
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  cycleId        String         @db.ObjectId
   cycle          AppraisalCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
-  employeeId     Int
+  employeeId     String         @db.ObjectId
   employee       Employee       @relation(fields: [employeeId], references: [id])
-  targetScore    Float?         // average monthly target score in the period, if on a plan
+  targetScore    Float? // average monthly target score in the period, if on a plan
   selfRating     Int?
   selfComment    String?
   managerRating  Int?
@@ -218,19 +218,19 @@ model Appraisal {
 }
 
 model Role {
-  id        Int        @id @default(autoincrement())
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
   name      String     @unique
   // Data scope and write level: HR = whole company, MANAGER = own branch, EMPLOYEE = self
   base      String
-  modules   String     // JSON array of module keys this role can open
+  modules   String // JSON array of module keys this role can open
   locked    Boolean    @default(false) // the admin role cannot be edited
   employees Employee[]
 }
 
 model JobOpening {
-  id         Int         @id @default(autoincrement())
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
   title      String
-  branchId   Int
+  branchId   String      @db.ObjectId
   branch     Branch      @relation(fields: [branchId], references: [id])
   openings   Int
   // OPEN | CLOSED
@@ -240,8 +240,8 @@ model JobOpening {
 }
 
 model Candidate {
-  id          Int        @id @default(autoincrement())
-  jobId       Int
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  jobId       String     @db.ObjectId
   job         JobOpening @relation(fields: [jobId], references: [id], onDelete: Cascade)
   name        String
   phone       String
@@ -250,14 +250,14 @@ model Candidate {
   stage       String     @default("APPLIED")
   expectedCtc Int?
   notes       String?
-  employeeId  Int?       // set once the hired candidate is added as an employee
+  employeeId  String?    @db.ObjectId // set once the hired candidate is added as an employee
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
 
 model Letter {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String   @db.ObjectId
   employee   Employee @relation(fields: [employeeId], references: [id])
   type       String
   body       String
@@ -266,14 +266,14 @@ model Letter {
 }
 
 model EmployeeDocument {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String   @db.ObjectId
   employee   Employee @relation(fields: [employeeId], references: [id])
   kind       String
   fileName   String
   mime       String
   size       Int
-  data       Bytes    // prototype only; a real deployment keeps files in file storage
+  data       Bytes // prototype only; a real deployment keeps files in file storage
   uploadedBy String
   uploadedAt DateTime @default(now())
   verified   Boolean  @default(false)
@@ -281,21 +281,21 @@ model EmployeeDocument {
 }
 
 model TrainingProgram {
-  id          Int                  @id @default(autoincrement())
+  id          String               @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   category    String
   mandatory   Boolean              @default(true)
-  dueDate     String?              // YYYY-MM-DD
+  dueDate     String? // YYYY-MM-DD
   description String?
   createdAt   DateTime             @default(now())
   assignments TrainingAssignment[]
 }
 
 model TrainingAssignment {
-  id          Int             @id @default(autoincrement())
-  programId   Int
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  programId   String          @db.ObjectId
   program     TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
-  employeeId  Int
+  employeeId  String          @db.ObjectId
   employee    Employee        @relation(fields: [employeeId], references: [id])
   // ASSIGNED | COMPLETED
   status      String          @default("ASSIGNED")

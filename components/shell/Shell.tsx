@@ -29,7 +29,7 @@ import { api, notifyError } from "@/lib/client";
 import { initials } from "@/lib/format";
 
 export type ShellViewer = {
-  id: number;
+  id: string;
   name: string;
   roleName: string;
   /** HR = whole company, MANAGER = own branch, EMPLOYEE = own records */
@@ -38,7 +38,7 @@ export type ShellViewer = {
   modules: ModuleKey[];
 };
 
-type Person = { id: number; name: string; designation: string; branch: string; roleName: string };
+type Person = { id: string; name: string; designation: string; branch: string; roleName: string };
 
 export function Shell({
   viewer,
@@ -97,7 +97,7 @@ export function Shell({
     .map((s) => ({ ...s, items: s.items.filter((i) => viewer.modules.includes(i.module)) }))
     .filter((s) => s.items.length);
 
-  function switchTo(userId: number) {
+  function switchTo(userId: string) {
     if (userId === viewer.id) return;
     startSwitch(async () => {
       try {

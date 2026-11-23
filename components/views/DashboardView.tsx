@@ -53,8 +53,8 @@ export type TeamDashboardData = {
     dayOff: string | null;
   };
   onLeave: {
-    id: number;
-    employeeId: number;
+    id: string;
+    employeeId: string;
     name: string;
     branch: string;
     designation: string;
@@ -519,7 +519,7 @@ export type MyDashboardData = {
   history: { month: string; score: number; incentive: number; rank: number }[];
   balances: LeaveBalance[];
   requests: {
-    id: number;
+    id: string;
     type: string;
     fromDate: string;
     toDate: string;

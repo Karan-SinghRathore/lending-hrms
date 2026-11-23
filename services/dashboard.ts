@@ -55,13 +55,13 @@ async function chartData(v: Viewer, today: string, headcount: number) {
   const year = today.slice(0, 4);
   const [attendance, departments, leaves] = await Promise.all([
     db.attendance.groupBy({ by: ["date"], where: { date: { gte: days[0], lte: today }, employee: employeeScope(v) }, _count: true }),
-    db.employee.groupBy({ by: ["department"], where: employeeScope(v), _count: true, orderBy: { _count: { department: "desc" } } }),
+    db.employee.groupBy({ by: ["department"], where: employeeScope(v), _count: true }),
     db.leaveRequest.groupBy({ by: ["type"], where: { status: "APPROVED", fromDate: { startsWith: year }, employee: employeeScope(v) }, _sum: { days: true } }),
   ]);
   const byDate = new Map(attendance.map((a) => [a.date, a._count]));
   return {
     attendanceTrend: days.map((d) => ({ date: d, present: byDate.get(d) ?? 0, pct: headcount ? Math.round(((byDate.get(d) ?? 0) / headcount) * 100) : 0 })),
-    departments: departments.map((d) => ({ name: d.department, count: d._count })),
+    departments: departments.map((d) => ({ name: d.department, count: d._count })).sort((x, y) => y.count - x.count),
     leaveByType: leaves.map((l) => ({ type: l.type, days: l._sum.days ?? 0 })),
     year,
   };

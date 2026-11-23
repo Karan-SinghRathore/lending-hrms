@@ -18,7 +18,7 @@ export function countLeaveDays(from: string, to: string, halfDay: boolean, holid
   return workingDaysBetween(from, to, holidays).length;
 }
 
-export async function getBalances(employeeId: number, year = Number(todayStr().slice(0, 4))) {
+export async function getBalances(employeeId: string, year = Number(todayStr().slice(0, 4))) {
   const [allocations, requests] = await Promise.all([
     db.leaveAllocation.findMany({ where: { employeeId, year } }),
     db.leaveRequest.findMany({
@@ -131,7 +131,7 @@ export async function applyLeave(
 
 export async function decideLeave(
   v: Viewer,
-  id: number,
+  id: string,
   action: "APPROVE" | "REJECT" | "CANCEL",
   remark?: string,
 ) {

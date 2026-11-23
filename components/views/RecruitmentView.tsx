@@ -12,8 +12,8 @@ import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Empty, PageHeader, Stat, StatusBadge } from "@/components/ui/primitives";
 import { EmployeeFormModal } from "./EmployeeFormModal";
 
-export type CandidateRow = { id: number; name: string; phone: string; source: string; stage: string; expectedCtc: number | null; notes: string | null; employeeId: number | null; addedOn: string };
-export type JobRow = { id: number; title: string; branchId: number; branch: string; openings: number; status: string; openedOn: string; candidates: CandidateRow[] };
+export type CandidateRow = { id: string; name: string; phone: string; source: string; stage: string; expectedCtc: number | null; notes: string | null; employeeId: string | null; addedOn: string };
+export type JobRow = { id: string; title: string; branchId: string; branch: string; openings: number; status: string; openedOn: string; candidates: CandidateRow[] };
 
 const STAGE_COLOR: Record<string, string> = { APPLIED: "gray", SCREENING: "blue", INTERVIEW: "violet", OFFERED: "yellow", HIRED: "teal", REJECTED: "red" };
 const active = (c: CandidateRow) => !["HIRED", "REJECTED"].includes(c.stage);
@@ -27,11 +27,11 @@ export function RecruitmentView({
   role: "HR" | "MANAGER" | "EMPLOYEE";
   canAddEmployee: boolean;
   jobs: JobRow[];
-  branches: { id: number; name: string }[];
+  branches: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const isHr = role === "HR";
-  const [jobId, setJobId] = useState<number | null>(jobs.find((j) => j.status === "OPEN")?.id ?? jobs[0]?.id ?? null);
+  const [jobId, setJobId] = useState<string | null>(jobs.find((j) => j.status === "OPEN")?.id ?? jobs[0]?.id ?? null);
   const [busy, setBusy] = useState<string | null>(null);
   const [newJob, setNewJob] = useState(false);
   const [jobForm, setJobForm] = useState<{ title: string | null; branchId: string | null; openings: number | string }>({ title: null, branchId: null, openings: 1 });
@@ -212,7 +212,7 @@ export function RecruitmentView({
                 run(
                   "newjob",
                   async () => {
-                    const res = await api<{ id: number }>("/api/recruitment/jobs", "POST", { title: jobForm.title, branchId: Number(jobForm.branchId), openings: Number(jobForm.openings) });
+                    const res = await api<{ id: string }>("/api/recruitment/jobs", "POST", { title: jobForm.title, branchId: jobForm.branchId, openings: Number(jobForm.openings) });
                     setJobId(res.id);
                   },
                   "Position opened.",

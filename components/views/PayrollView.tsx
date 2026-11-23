@@ -12,7 +12,7 @@ import { DataTable, type Column } from "@/components/ui/DataTable";
 import { KeyValue, MonthSelect, PageHeader, Stat, StatusBadge } from "@/components/ui/primitives";
 
 export type SlipRow = {
-  id: number;
+  id: string;
   month: string;
   name: string;
   code: string;

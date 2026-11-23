@@ -11,9 +11,9 @@ import { LETTERS } from "@/lib/letters";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { PageHeader } from "@/components/ui/primitives";
 
-export type DocRow = { id: number; employeeId: number; name: string; code: string; branch: string; kind: string; fileName: string; size: number; uploadedBy: string; uploadedOn: string; verified: boolean; verifiedBy: string | null };
-export type LetterRow = { id: number; employeeId: number; name: string; code: string; branch: string; type: string; body: string; issuedBy: string; issuedOn: string };
-type Person = { id: number; name: string; branch: string };
+export type DocRow = { id: string; employeeId: string; name: string; code: string; branch: string; kind: string; fileName: string; size: number; uploadedBy: string; uploadedOn: string; verified: boolean; verifiedBy: string | null };
+export type LetterRow = { id: string; employeeId: string; name: string; code: string; branch: string; type: string; body: string; issuedBy: string; issuedOn: string };
+type Person = { id: string; name: string; branch: string };
 
 /** Opens the letter on a clean page and sends it to the printer (or "Save as PDF"). */
 function printLetter(l: LetterRow) {
@@ -38,7 +38,7 @@ export function DocumentsView({
   people,
 }: {
   role: "HR" | "MANAGER" | "EMPLOYEE";
-  viewerId: number;
+  viewerId: string;
   docs: DocRow[];
   letters: LetterRow[];
   people: Person[];
@@ -277,7 +277,7 @@ export function DocumentsView({
               loading={busy === "issue"}
               disabled={!employeeId || !letterType}
               onClick={() =>
-                run("issue", () => api("/api/letters", "POST", { employeeId: Number(employeeId), type: letterType }), "Letter issued.", () => {
+                run("issue", () => api("/api/letters", "POST", { employeeId: employeeId, type: letterType }), "Letter issued.", () => {
                   setIssuing(false);
                   setLetterType(null);
                   setEmployeeId(null);

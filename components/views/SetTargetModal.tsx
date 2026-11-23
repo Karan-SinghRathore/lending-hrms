@@ -6,7 +6,7 @@ import { METRICS, PLANS, type Metric, type Plan } from "@/lib/config";
 import { api, notifyError, notifyOk } from "@/lib/client";
 import { monthLabel } from "@/lib/dates";
 
-export type PlanEmployee = { id: number; name: string; code: string; branch: string; plan: Plan; hasTargets: boolean };
+export type PlanEmployee = { id: string; name: string; code: string; branch: string; plan: Plan; hasTargets: boolean };
 
 export function SetTargetModal({
   month,
@@ -17,7 +17,7 @@ export function SetTargetModal({
   month: string;
   employees: PlanEmployee[];
   /** Current targets by employee id, used to prefill when replacing. */
-  existing: Record<number, Partial<Record<Metric, number>>>;
+  existing: Record<string, Partial<Record<Metric, number>>>;
   onClose: (saved: boolean) => void;
 }) {
   const firstMissing = employees.find((e) => !e.hasTargets);

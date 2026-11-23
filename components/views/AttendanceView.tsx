@@ -11,7 +11,7 @@ import { CheckInCard, type TodayAttendance } from "./CheckInCard";
 import { RegisterGrid, RegisterLegend, type RegisterRowData } from "./RegisterGrid";
 
 export type BoardRow = {
-  id: number;
+  id: string;
   name: string;
   code: string;
   designation: string;

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { handle } from "@/lib/api";
 import { deleteDocument, getDocumentFile, verifyDocument } from "@/services/documents";
-import { AppError, getViewer } from "@/services/viewer";
+import { AppError, getViewer, oid } from "@/services/viewer";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 // Serves the file itself, to people allowed to see that employee.
 export async function GET(_req: Request, ctx: Ctx) {
   try {
-    const doc = await getDocumentFile(await getViewer("documents"), Number((await ctx.params).id));
+    const doc = await getDocumentFile(await getViewer("documents"), oid((await ctx.params).id));
     return new NextResponse(Buffer.from(doc.data), {
       headers: {
         "Content-Type": doc.mime,
@@ -24,9 +24,9 @@ export async function GET(_req: Request, ctx: Ctx) {
 }
 
 export async function PATCH(req: Request, ctx: Ctx) {
-  return handle(async () => verifyDocument(await getViewer("documents"), Number((await ctx.params).id), Boolean((await req.json()).verified)));
+  return handle(async () => verifyDocument(await getViewer("documents"), oid((await ctx.params).id), Boolean((await req.json()).verified)));
 }
 
 export async function DELETE(_req: Request, ctx: Ctx) {
-  return handle(async () => deleteDocument(await getViewer("documents"), Number((await ctx.params).id)));
+  return handle(async () => deleteDocument(await getViewer("documents"), oid((await ctx.params).id)));
 }

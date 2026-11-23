@@ -18,7 +18,7 @@ export async function addHoliday(v: Viewer, input: { date: string; name: string 
   return db.holiday.create({ data: { date: input.date, name: input.name.trim() } });
 }
 
-export async function removeHoliday(v: Viewer, id: number) {
+export async function removeHoliday(v: Viewer, id: string) {
   if (v.role !== "HR") throw new AppError("Only HR can change the holiday calendar.", 403);
   const h = await db.holiday.findUnique({ where: { id } });
   if (!h) throw new AppError("Holiday not found.", 404);

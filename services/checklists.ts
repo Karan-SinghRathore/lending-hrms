@@ -11,7 +11,7 @@ export async function listCases(v: Viewer) {
   });
 }
 
-export async function startCase(v: Viewer, employeeId: number, kind: string) {
+export async function startCase(v: Viewer, employeeId: string, kind: string) {
   if (v.role !== "HR") throw new AppError("Only HR can start a checklist.", 403);
   if (kind !== "JOINING" && kind !== "EXIT") throw new AppError("Choose joining or exit.");
   const emp = await db.employee.findUnique({ where: { id: employeeId } });
@@ -23,7 +23,7 @@ export async function startCase(v: Viewer, employeeId: number, kind: string) {
   });
 }
 
-export async function toggleTask(v: Viewer, taskId: number, done: boolean) {
+export async function toggleTask(v: Viewer, taskId: string, done: boolean) {
   const task = await db.checklistTask.findUnique({ where: { id: taskId }, include: { case: { include: { employee: true } } } });
   if (!task) throw new AppError("Task not found.", 404);
   if (!canSee(v, task.case.employee)) throw new AppError("This checklist is not yours to update.", 403);

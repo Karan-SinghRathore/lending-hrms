@@ -167,7 +167,7 @@ async function main() {
     ],
   });
 
-  const branches = new Map<string, { id: number; lat: number; lng: number }>();
+  const branches = new Map<string, { id: string; lat: number; lng: number }>();
   for (const b of BRANCHES) {
     const row = await db.branch.create({ data: b });
     branches.set(b.code, row);
@@ -195,14 +195,14 @@ async function main() {
     },
   });
 
-  type Emp = { id: number; name: string; kind: Kind; branchCode: string; branchId: number };
+  type Emp = { id: string; name: string; kind: Kind; branchCode: string; branchId: string };
   const staff: Emp[] = [];
   for (const b of BRANCHES) {
     const branch = branches.get(b.code)!;
-    let managerId: number | null = null;
+    let managerId: string | null = null;
     for (const p of PEOPLE[b.code]) {
       const info = ROLE_INFO[p.kind];
-      const row: { id: number } = await db.employee.create({
+      const row: { id: string } = await db.employee.create({
         data: {
           code: nextCode(), name: p.name, email: email(p.name), phone: phone(), gender: p.gender,
           designation: info.designation, department: info.department,
@@ -250,11 +250,11 @@ async function main() {
     EL: ["Family trip", "Sister's wedding", "Native place visit", "Vacation"],
   };
   const leaveRows: {
-    employeeId: number; type: string; fromDate: string; toDate: string; halfDay: boolean; days: number;
-    reason: string; status: string; approverId: number | null; decidedAt: Date | null; createdAt: Date;
+    employeeId: string; type: string; fromDate: string; toDate: string; halfDay: boolean; days: number;
+    reason: string; status: string; approverId: string | null; decidedAt: Date | null; createdAt: Date;
   }[] = [];
   const approverOf = (e: (typeof everyone)[number]) => e.managerId ?? hrHead.id;
-  const busy = new Map<number, [string, string][]>();
+  const busy = new Map<string, [string, string][]>();
   const addLeave = (
     e: (typeof everyone)[number], type: string, from: string, to: string, status: string, halfDay = false,
   ) => {
@@ -322,12 +322,12 @@ async function main() {
 
   // ---- Attendance -------------------------------------------------------
   const approvedLeave = leaveRows.filter((l) => l.status === "APPROVED");
-  const onLeave = (empId: number, d: string) =>
+  const onLeave = (empId: string, d: string) =>
     approvedLeave.some((l) => l.employeeId === empId && l.fromDate <= d && l.toDate >= d && !l.halfDay);
   const habituallyLate = new Set(["Rakesh Gurjar", "Nikhil Chouhan", "Vivek Shukla"]);
   const now = new Date();
   const attendanceRows: {
-    employeeId: number; date: string; checkIn: Date; checkOut: Date | null; lat: number; lng: number;
+    employeeId: string; date: string; checkIn: Date; checkOut: Date | null; lat: number; lng: number;
     location: string; status: string;
   }[] = [];
   const branchById = new Map([...branches.entries()].map(([code, b]) => [b.id, { ...b, name: BRANCHES.find((x) => x.code === code)!.name }]));
@@ -364,14 +364,14 @@ async function main() {
   await db.attendance.createMany({ data: attendanceRows });
 
   // ---- Targets ----------------------------------------------------------
-  const skill = new Map<number, number>();
+  const skill = new Map<string, number>();
   const stars = new Set(["Shruti Jain", "Aditya Deshpande", "Ganesh More", "Harsh Agarwal"]);
   const laggards = new Set(["Abhishek Tripathi", "Ritesh Dangi", "Pallavi Shinde"]);
   for (const e of everyone) {
     skill.set(e.id, stars.has(e.name) ? between(1.2, 1.32) : laggards.has(e.name) ? between(0.66, 0.78) : between(0.84, 1.14));
   }
 
-  const targetRows: { employeeId: number; month: string; metric: string; target: number; achieved: number; weight: number }[] = [];
+  const targetRows: { employeeId: string; month: string; metric: string; target: number; achieved: number; weight: number }[] = [];
   for (const mm of months) {
     const progress = monthProgress(mm, holidays, today);
     for (const e of everyone) {

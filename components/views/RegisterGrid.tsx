@@ -5,7 +5,7 @@ import { Box, Group, ScrollArea, Table, Text } from "@mantine/core";
 import { parseDate } from "@/lib/dates";
 
 export type RegisterRowData = {
-  id: number;
+  id: string;
   name: string;
   code: string;
   branch: string;

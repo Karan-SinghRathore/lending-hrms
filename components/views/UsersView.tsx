@@ -9,17 +9,17 @@ import { api, notifyError, notifyOk } from "@/lib/client";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { PageHeader } from "@/components/ui/primitives";
 
-export type RoleRow = { id: number; name: string; base: string; locked: boolean; modules: ModuleKey[]; users: number };
-export type UserRow = { id: number; name: string; code: string; designation: string; branch: string; roleId: number | null; roleName: string };
+export type RoleRow = { id: string; name: string; base: string; locked: boolean; modules: ModuleKey[]; users: number };
+export type UserRow = { id: string; name: string; code: string; designation: string; branch: string; roleId: string | null; roleName: string };
 
 const KEYS = Object.keys(MODULES) as ModuleKey[];
 const same = (a: ModuleKey[], b: ModuleKey[]) => a.length === b.length && a.every((k) => b.includes(k));
 
-export function UsersView({ roles, users, viewerId }: { roles: RoleRow[]; users: UserRow[]; viewerId: number }) {
+export function UsersView({ roles, users, viewerId }: { roles: RoleRow[]; users: UserRow[]; viewerId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   // Unsaved module ticks, per role.
-  const [draft, setDraft] = useState<Record<number, ModuleKey[]>>({});
+  const [draft, setDraft] = useState<Record<string, ModuleKey[]>>({});
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<{ name: string; base: string; modules: ModuleKey[] }>({ name: "", base: "EMPLOYEE", modules: ["dashboard"] });
   const [roleFilter, setRoleFilter] = useState("ALL");
@@ -80,7 +80,7 @@ export function UsersView({ roles, users, viewerId }: { roles: RoleRow[]; users:
             value={u.roleId ? String(u.roleId) : null}
             disabled={busy === `u-${u.id}`}
             data={roles.map((r) => ({ value: String(r.id), label: r.name }))}
-            onChange={(v) => v && Number(v) !== u.roleId && run(`u-${u.id}`, () => api(`/api/users/${u.id}`, "PATCH", { roleId: Number(v) }), `${u.name} is now ${roles.find((r) => String(r.id) === v)?.name}.`)}
+            onChange={(v) => v && v !== u.roleId && run(`u-${u.id}`, () => api(`/api/users/${u.id}`, "PATCH", { roleId: v }), `${u.name} is now ${roles.find((r) => String(r.id) === v)?.name}.`)}
           />
         ),
     },

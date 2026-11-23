@@ -10,7 +10,7 @@ export default async function AppraisalsPage({ searchParams }: { searchParams: P
   const viewer = await getViewer();
   if (!can(viewer, "appraisals")) return <NoAccess module="appraisals" role={viewer.roleName} />;
   const cycles = await listCycles();
-  const requested = Number((await searchParams).cycle);
+  const requested = (await searchParams).cycle;
   const cycle = cycles.find((c) => c.id === requested) ?? cycles.find((c) => c.status === "OPEN") ?? cycles[0] ?? null;
   const rows = cycle ? await listAppraisals(viewer, cycle.id) : [];
   const now = currentMonth();

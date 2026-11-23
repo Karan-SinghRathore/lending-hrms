@@ -13,7 +13,7 @@ export async function listUsers() {
 }
 
 /** One person per role for the "view as" switcher, plus whoever is active now. */
-export async function switcherPeople(currentId: number) {
+export async function switcherPeople(currentId: string) {
   const roles = await db.role.findMany({
     include: { employees: { where: { status: "ACTIVE" }, include: { branch: true }, orderBy: { id: "asc" } } },
     orderBy: { id: "asc" },
@@ -35,7 +35,7 @@ function cleanModules(input: unknown): ModuleKey[] {
   return keys.includes("dashboard") ? keys : ["dashboard", ...keys];
 }
 
-export async function saveRole(v: Viewer, id: number | null, input: { name?: string; base?: string; modules?: unknown }) {
+export async function saveRole(v: Viewer, id: string | null, input: { name?: string; base?: string; modules?: unknown }) {
   const modules = cleanModules(input.modules);
   if (id) {
     const role = await db.role.findUnique({ where: { id } });
@@ -50,7 +50,7 @@ export async function saveRole(v: Viewer, id: number | null, input: { name?: str
   return db.role.create({ data: { name, base: input.base!, modules: JSON.stringify(modules) } });
 }
 
-export async function deleteRole(v: Viewer, id: number) {
+export async function deleteRole(v: Viewer, id: string) {
   const role = await db.role.findUnique({ where: { id }, include: { _count: { select: { employees: true } } } });
   if (!role) throw new AppError("Role not found.", 404);
   if (role.locked) throw new AppError(`${role.name} can't be deleted.`);
@@ -58,7 +58,7 @@ export async function deleteRole(v: Viewer, id: number) {
   return db.role.delete({ where: { id } });
 }
 
-export async function setUserRole(v: Viewer, employeeId: number, roleId: number) {
+export async function setUserRole(v: Viewer, employeeId: string, roleId: string) {
   if (employeeId === v.id) throw new AppError("You can't change your own role.");
   const [emp, role] = await Promise.all([db.employee.findUnique({ where: { id: employeeId } }), db.role.findUnique({ where: { id: roleId } })]);
   if (!emp || !role) throw new AppError("Choose a user and a role.");

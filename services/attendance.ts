@@ -32,7 +32,7 @@ export function describeLocation(lat: number, lng: number, branch: { name: strin
   return `Outstation · ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 }
 
-export async function getToday(employeeId: number) {
+export async function getToday(employeeId: string) {
   return db.attendance.findUnique({ where: { employeeId_date: { employeeId, date: todayStr() } } });
 }
 
@@ -98,7 +98,7 @@ export async function todayBoard(v: Viewer) {
 }
 
 export type RegisterRow = {
-  id: number;
+  id: string;
   name: string;
   code: string;
   branch: string;
@@ -111,7 +111,7 @@ export type RegisterRow = {
 };
 
 /** Monthly muster: one row per employee, one cell per day. */
-export async function monthRegister(v: Viewer, month: string, employeeId?: number) {
+export async function monthRegister(v: Viewer, month: string, employeeId?: string) {
   const days = daysInMonth(month);
   const today = todayStr();
   const where = employeeId ? { id: employeeId } : employeeScope(v);
@@ -159,6 +159,6 @@ export async function monthRegister(v: Viewer, month: string, employeeId?: numbe
   return { days, rows, holidays: [...holidays] };
 }
 
-export async function recentLog(employeeId: number, limit = 31) {
+export async function recentLog(employeeId: string, limit = 31) {
   return db.attendance.findMany({ where: { employeeId }, orderBy: { date: "desc" }, take: limit });
 }

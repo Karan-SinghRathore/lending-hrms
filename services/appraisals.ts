@@ -14,9 +14,9 @@ async function targetScores(fromMonth: string, toMonth: string) {
     const key = `${t.employeeId}|${t.month}`;
     byEmpMonth.set(key, [...(byEmpMonth.get(key) ?? []), t]);
   }
-  const scores = new Map<number, number[]>();
+  const scores = new Map<string, number[]>();
   for (const [key, rows] of byEmpMonth) {
-    const id = Number(key.split("|")[0]);
+    const id = key.split("|")[0];
     // Skip months with nothing recorded yet so an unstarted month doesn't drag the average down.
     if (rows.every((r) => achievementPct(r.target, r.achieved) === 0)) continue;
     scores.set(id, [...(scores.get(id) ?? []), weightedScore(rows)]);
@@ -47,14 +47,14 @@ export async function startCycle(v: Viewer, input: { name: string; fromMonth: st
   });
 }
 
-export async function closeCycle(v: Viewer, id: number) {
+export async function closeCycle(v: Viewer, id: string) {
   if (v.role !== "HR") throw new AppError("Only HR can close a cycle.", 403);
   const open = await db.appraisal.count({ where: { cycleId: id, status: { not: "DONE" } } });
   if (open) throw new AppError(`${open} review${open === 1 ? " is" : "s are"} not finalised yet.`);
   return db.appraisalCycle.update({ where: { id }, data: { status: "CLOSED" } });
 }
 
-export async function listAppraisals(v: Viewer, cycleId: number) {
+export async function listAppraisals(v: Viewer, cycleId: string) {
   return db.appraisal.findMany({
     where: {
       cycleId,
@@ -74,7 +74,7 @@ function rating(n: unknown) {
 
 export async function submitStep(
   v: Viewer,
-  id: number,
+  id: string,
   input: { rating: unknown; comment?: string; incrementPct?: unknown },
 ) {
   const a = await db.appraisal.findUnique({ where: { id }, include: { employee: true, cycle: true } });

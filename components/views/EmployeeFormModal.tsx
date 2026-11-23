@@ -8,13 +8,13 @@ import { api, notifyError, notifyOk } from "@/lib/client";
 import { todayStr } from "@/lib/dates";
 
 export type EmployeeFormValues = {
-  id?: number;
+  id?: string;
   name: string;
   email: string;
   phone: string;
   gender: string;
   designation: string;
-  branchId: number | null;
+  branchId: string | null;
   joinDate: string | null;
   monthlyCtc: number | string;
   status: string;
@@ -32,8 +32,8 @@ export function EmployeeFormModal({
   onClose,
 }: {
   initial?: EmployeeFormValues;
-  branches: { id: number; name: string }[];
-  onClose: (saved: boolean, id?: number) => void;
+  branches: { id: string; name: string }[];
+  onClose: (saved: boolean, id?: string) => void;
 }) {
   const editing = !!initial?.id;
   const [f, setF] = useState<EmployeeFormValues>(
@@ -51,8 +51,8 @@ export function EmployeeFormModal({
     try {
       const body = { ...f, monthlyCtc: Number(f.monthlyCtc) };
       const res = editing
-        ? await api<{ id: number }>(`/api/employees/${f.id}`, "PATCH", body)
-        : await api<{ id: number; code: string }>("/api/employees", "POST", body);
+        ? await api<{ id: string }>(`/api/employees/${f.id}`, "PATCH", body)
+        : await api<{ id: string; code: string }>("/api/employees", "POST", body);
       notifyOk(editing ? `${f.name}'s details updated.` : `${f.name} added. Joining checklist started.`);
       onClose(true, res.id);
     } catch (e) {
@@ -90,7 +90,7 @@ export function EmployeeFormModal({
             label="Branch"
             placeholder="Choose"
             value={f.branchId ? String(f.branchId) : null}
-            onChange={(v) => set({ branchId: v ? Number(v) : null })}
+            onChange={(v) => set({ branchId: v })}
             data={branches.map((b) => ({ value: String(b.id), label: b.name }))}
           />
           <DatePickerInput label="Date of joining" value={f.joinDate} onChange={(v) => set({ joinDate: v })} valueFormat="DD MMM YYYY" weekendDays={[0]} />

@@ -79,7 +79,7 @@ export const PAYROLL = {
   tdsPct: 10, // on the amount above the threshold
 };
 
-export const RATINGS: Record<number, string> = {
+export const RATINGS: Record<string, string> = {
   1: "1 · Needs improvement",
   2: "2 · Below expectations",
   3: "3 · Meets expectations",

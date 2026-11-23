@@ -14,14 +14,16 @@ export type Viewer = {
   role: Role;
   roleName: string;
   modules: ModuleKey[];
-  id: number;
+  id: string;
   name: string;
   code: string;
   designation: string;
-  branchId: number;
+  branchId: string;
   branchName: string;
   plan: string;
 };
+
+const OBJECT_ID = /^[a-f0-9]{24}$/i;
 
 export class AppError extends Error {
   constructor(
@@ -47,7 +49,8 @@ export function parseModules(json: string | null | undefined): ModuleKey[] {
  */
 export async function getViewer(module?: ModuleKey): Promise<Viewer> {
   const store = await cookies();
-  const id = Number(store.get(USER_COOKIE)?.value);
+  const raw = store.get(USER_COOKIE)?.value ?? "";
+  const id = OBJECT_ID.test(raw) ? raw : null;
   const include = { branch: true, role: true } as const;
   const emp =
     (id ? await db.employee.findFirst({ where: { id, status: "ACTIVE" }, include }) : null) ??
@@ -83,8 +86,15 @@ export function employeeScope(v: Viewer): Prisma.EmployeeWhereInput {
   return { id: v.id };
 }
 
-export function canSee(v: Viewer, emp: { id: number; branchId: number }): boolean {
+export function canSee(v: Viewer, emp: { id: string; branchId: string }): boolean {
   if (v.role === "HR") return true;
   if (v.role === "MANAGER") return emp.branchId === v.branchId;
   return emp.id === v.id;
+}
+
+/** Checks that a value from the URL or request body is a database id; anything else is treated as "not found". */
+export function oid(value: unknown): string {
+  const s = typeof value === "string" ? value : "";
+  if (!OBJECT_ID.test(s)) throw new AppError("Record not found.", 404);
+  return s;
 }

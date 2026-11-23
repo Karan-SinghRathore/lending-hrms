@@ -10,15 +10,15 @@ import { DataTable, type Column } from "@/components/ui/DataTable";
 import { PageHeader, Stat } from "@/components/ui/primitives";
 
 export type CaseRow = {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   name: string;
   code: string;
   designation: string;
   branch: string;
   kind: string;
   startedOn: string;
-  tasks: { id: number; title: string; owner: string; done: boolean; doneBy: string | null; doneAt: Date | null }[];
+  tasks: { id: string; title: string; owner: string; done: boolean; doneBy: string | null; doneAt: Date | null }[];
 };
 
 const OWNER: Record<string, string> = { HR: "HR", MANAGER: "Manager", EMPLOYEE: "Employee" };
@@ -31,21 +31,21 @@ export function OnboardingView({
 }: {
   role: "HR" | "MANAGER" | "EMPLOYEE";
   cases: CaseRow[];
-  employees: { id: number; name: string; code: string; branch: string }[];
+  employees: { id: string; name: string; code: string; branch: string }[];
 }) {
   const router = useRouter();
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [kind, setKind] = useState("JOINING");
   const [employeeId, setEmployeeId] = useState<string | null>(null);
-  const [busy, setBusy] = useState<number | "start" | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [filter, setFilter] = useState("OPEN");
 
   const open = cases.find((c) => c.id === openId) ?? null;
   const isOpen = (c: CaseRow) => doneCount(c) < c.tasks.length;
   const visible = cases.filter((c) => filter === "ALL" || (filter === "OPEN" ? isOpen(c) : !isOpen(c)));
 
-  async function toggle(taskId: number, done: boolean) {
+  async function toggle(taskId: string, done: boolean) {
     setBusy(taskId);
     try {
       await api(`/api/checklists/tasks/${taskId}`, "PATCH", { done });
@@ -60,7 +60,7 @@ export function OnboardingView({
   async function start() {
     setBusy("start");
     try {
-      const res = await api<{ id: number }>("/api/checklists", "POST", { employeeId: Number(employeeId), kind });
+      const res = await api<{ id: string }>("/api/checklists", "POST", { employeeId: employeeId, kind });
       notifyOk("Checklist started.");
       setStarting(false);
       setEmployeeId(null);

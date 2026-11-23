@@ -20,7 +20,7 @@ export async function listDocuments(v: Viewer) {
   });
 }
 
-export async function uploadDocument(v: Viewer, employeeId: number, kind: string, file: File | null) {
+export async function uploadDocument(v: Viewer, employeeId: string, kind: string, file: File | null) {
   const emp = await db.employee.findUnique({ where: { id: employeeId } });
   if (!emp) throw new AppError("Choose an employee.");
   if (!canSee(v, emp)) throw new AppError("You can upload documents only for people you manage.", 403);
@@ -35,18 +35,18 @@ export async function uploadDocument(v: Viewer, employeeId: number, kind: string
   return doc;
 }
 
-export async function getDocumentFile(v: Viewer, id: number) {
+export async function getDocumentFile(v: Viewer, id: string) {
   const doc = await db.employeeDocument.findUnique({ where: { id }, include: { employee: true } });
   if (!doc || !canSee(v, doc.employee)) throw new AppError("Document not found.", 404);
   return doc;
 }
 
-export async function verifyDocument(v: Viewer, id: number, verified: boolean) {
+export async function verifyDocument(v: Viewer, id: string, verified: boolean) {
   if (v.role !== "HR") throw new AppError("Only HR can verify documents.", 403);
   return db.employeeDocument.update({ where: { id }, data: { verified, verifiedBy: verified ? v.name : null }, select: { id: true } });
 }
 
-export async function deleteDocument(v: Viewer, id: number) {
+export async function deleteDocument(v: Viewer, id: string) {
   const doc = await db.employeeDocument.findUnique({ where: { id }, select: { id: true, verified: true, employee: true } });
   if (!doc || !canSee(v, doc.employee)) throw new AppError("Document not found.", 404);
   if (v.role !== "HR" && doc.verified) throw new AppError("A verified document can be removed only by HR.", 403);
@@ -62,7 +62,7 @@ export async function listLetters(v: Viewer) {
   });
 }
 
-export async function issueLetter(v: Viewer, employeeId: number, type: string) {
+export async function issueLetter(v: Viewer, employeeId: string, type: string) {
   if (v.role !== "HR") throw new AppError("Only HR can issue letters.", 403);
   const template = LETTERS[type];
   if (!template) throw new AppError("Choose a letter type.");
@@ -82,7 +82,7 @@ export async function issueLetter(v: Viewer, employeeId: number, type: string) {
   return db.letter.create({ data: { employeeId, type, body, issuedBy: v.name } });
 }
 
-export async function deleteLetter(v: Viewer, id: number) {
+export async function deleteLetter(v: Viewer, id: string) {
   if (v.role !== "HR") throw new AppError("Only HR can withdraw a letter.", 403);
   return db.letter.delete({ where: { id } });
 }

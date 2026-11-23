@@ -11,8 +11,8 @@ import { longDate, todayStr } from "@/lib/dates";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { PageHeader, Stat } from "@/components/ui/primitives";
 
-export type Assignee = { id: number; employeeId: number; name: string; designation: string; branch: string; status: string; completedOn: string | null; markedBy: string | null };
-export type ProgramRow = { id: number; title: string; category: string; mandatory: boolean; dueDate: string | null; description: string | null; assignees: Assignee[] };
+export type Assignee = { id: string; employeeId: string; name: string; designation: string; branch: string; status: string; completedOn: string | null; markedBy: string | null };
+export type ProgramRow = { id: string; title: string; category: string; mandatory: boolean; dueDate: string | null; description: string | null; assignees: Assignee[] };
 
 const done = (p: ProgramRow) => p.assignees.filter((a) => a.status === "COMPLETED").length;
 const overdue = (p: ProgramRow) => !!p.dueDate && p.dueDate < todayStr() && done(p) < p.assignees.length;
@@ -24,7 +24,7 @@ export function TrainingView({
   audiences,
 }: {
   role: "HR" | "MANAGER" | "EMPLOYEE";
-  viewerId: number;
+  viewerId: string;
   programs: ProgramRow[];
   audiences: Record<string, string>;
 }) {
@@ -32,7 +32,7 @@ export function TrainingView({
   const isHr = role === "HR";
   const self = role === "EMPLOYEE";
   const [busy, setBusy] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ title: "", category: TRAINING_CATEGORIES[2], mandatory: true, dueDate: null as string | null, description: "", audience: "ALL" });
 

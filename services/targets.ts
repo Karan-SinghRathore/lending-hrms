@@ -6,7 +6,7 @@ import { getHolidaySet } from "./holidays";
 import { AppError, employeeScope, type Viewer } from "./viewer";
 
 export type MetricCell = {
-  targetId: number;
+  targetId: string;
   metric: Metric;
   label: string;
   unit: "inr" | "count";
@@ -17,12 +17,12 @@ export type MetricCell = {
 };
 
 export type ScoreRow = {
-  employeeId: number;
+  employeeId: string;
   name: string;
   code: string;
   designation: string;
   branch: string;
-  branchId: number;
+  branchId: string;
   plan: Plan;
   metrics: MetricCell[];
   score: number; // achievement so far
@@ -115,7 +115,7 @@ export async function scorecardFor(v: Viewer, month: string) {
 }
 
 export type BranchSummary = {
-  branchId: number;
+  branchId: string;
   branch: string;
   disbursalTarget: number;
   disbursalAchieved: number;
@@ -128,7 +128,7 @@ export type BranchSummary = {
 };
 
 export function summariseByBranch(rows: ScoreRow[]): BranchSummary[] {
-  const map = new Map<number, BranchSummary>();
+  const map = new Map<string, BranchSummary>();
   for (const r of rows) {
     const b =
       map.get(r.branchId) ??
@@ -165,7 +165,7 @@ export function summariseByBranch(rows: ScoreRow[]): BranchSummary[] {
     .sort((a, b) => b.avgScore - a.avgScore);
 }
 
-export async function updateTarget(v: Viewer, id: number, input: { achieved?: number; target?: number }) {
+export async function updateTarget(v: Viewer, id: string, input: { achieved?: number; target?: number }) {
   const t = await db.target.findUnique({ where: { id }, include: { employee: true } });
   if (!t) throw new AppError("Target not found.", 404);
   if (v.role === "EMPLOYEE") throw new AppError("Only your manager or HR can update achievement.", 403);
@@ -184,7 +184,7 @@ export async function updateTarget(v: Viewer, id: number, input: { achieved?: nu
   return db.target.update({ where: { id }, data });
 }
 
-export async function employeeTargetHistory(employeeId: number) {
+export async function employeeTargetHistory(employeeId: string) {
   const months = selectableMonths();
   const holidays = await getHolidaySet();
   const targets = await db.target.findMany({ where: { employeeId, month: { in: months } } });
@@ -224,7 +224,7 @@ export async function planEmployees(v: Viewer, month: string) {
 /** HR sets (or replaces) one person's targets for a month. */
 export async function setTargets(
   v: Viewer,
-  input: { employeeId: number; month: string; values: Record<string, number> },
+  input: { employeeId: string; month: string; values: Record<string, number> },
 ) {
   if (v.role !== "HR") throw new AppError("Only HR can set targets.", 403);
   if (!targetMonths().includes(input.month)) throw new AppError("Targets can be set for next month, this month or the last two months.");
@@ -249,7 +249,7 @@ export async function setTargets(
   return { employee: emp.name };
 }
 
-export async function deleteTargets(v: Viewer, employeeId: number, month: string) {
+export async function deleteTargets(v: Viewer, employeeId: string, month: string) {
   if (v.role !== "HR") throw new AppError("Only HR can remove targets.", 403);
   const res = await db.target.deleteMany({ where: { employeeId, month } });
   if (!res.count) throw new AppError("No targets found to remove.", 404);

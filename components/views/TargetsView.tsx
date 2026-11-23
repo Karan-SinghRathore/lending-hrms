@@ -434,7 +434,7 @@ export function TargetsView({
         <MetricValue
           expected={expected}
           m={{
-            targetId: 0,
+            targetId: "",
             metric: "DISBURSAL",
             label: "",
             unit: "inr",
@@ -460,7 +460,7 @@ export function TargetsView({
         <MetricValue
           expected={expected}
           m={{
-            targetId: 0,
+            targetId: "",
             metric: "COLLECTION",
             label: "",
             unit: "inr",

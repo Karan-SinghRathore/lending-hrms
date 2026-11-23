@@ -15,7 +15,7 @@ import type { LeaveBalance } from "@/services/leaves";
 
 export type ProfileData = {
   employee: {
-    id: number;
+    id: string;
     code: string;
     name: string;
     email: string;
@@ -25,15 +25,15 @@ export type ProfileData = {
     department: string;
     branch: string;
     city: string;
-    manager: { id: number; name: string; designation: string } | null;
+    manager: { id: string; name: string; designation: string } | null;
     joinDate: string;
     status: string;
     monthlyCtc: number | null;
     reportCount: number;
-    branchId: number;
+    branchId: string;
   };
   /** Set for HR only: lets them edit this employee. */
-  branchList: { id: number; name: string }[] | null;
+  branchList: { id: string; name: string }[] | null;
   balances: LeaveBalance[];
   targets: {
     month: string;
@@ -43,7 +43,7 @@ export type ProfileData = {
   }[];
   register: { days: string[]; rows: RegisterRowData[]; month: string };
   log: { date: string; checkIn: Date | null; checkOut: Date | null; location: string | null; status: string }[];
-  leaves: { id: number; type: string; fromDate: string; toDate: string; days: number; reason: string; status: string; approver: string | null }[];
+  leaves: { id: string; type: string; fromDate: string; toDate: string; days: number; reason: string; status: string; approver: string | null }[];
 };
 
 function tenure(joinDate: string) {

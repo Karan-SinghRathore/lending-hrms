@@ -11,16 +11,16 @@ import { pct } from "@/lib/format";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Empty, PageHeader, Stat } from "@/components/ui/primitives";
 
-export type Cycle = { id: number; name: string; fromMonth: string; toMonth: string; status: string };
+export type Cycle = { id: string; name: string; fromMonth: string; toMonth: string; status: string };
 export type ReviewRow = {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   name: string;
   code: string;
   designation: string;
   branch: string;
   manager: string | null;
-  managerId: number | null;
+  managerId: string | null;
   targetScore: number | null;
   selfRating: number | null;
   selfComment: string | null;
@@ -142,7 +142,7 @@ export function AppraisalsView({
   monthOptions,
 }: {
   role: "HR" | "MANAGER" | "EMPLOYEE";
-  viewerId: number;
+  viewerId: string;
   cycles: Cycle[];
   cycle: Cycle | null;
   rows: ReviewRow[];
@@ -171,7 +171,7 @@ export function AppraisalsView({
   async function cycleAction(body: object, ok: string) {
     setBusy(true);
     try {
-      const res = await api<{ id: number }>("/api/appraisals/cycles", "POST", body);
+      const res = await api<{ id: string }>("/api/appraisals/cycles", "POST", body);
       notifyOk(ok);
       setStarting(false);
       router.push(`${pathname}?cycle=${res.id}`);

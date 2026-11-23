@@ -49,12 +49,12 @@ export async function createProgram(
   });
 }
 
-export async function deleteProgram(v: Viewer, id: number) {
+export async function deleteProgram(v: Viewer, id: string) {
   if (v.role !== "HR") throw new AppError("Only HR can remove a training.", 403);
   return db.trainingProgram.delete({ where: { id } });
 }
 
-export async function markAssignment(v: Viewer, id: number, done: boolean) {
+export async function markAssignment(v: Viewer, id: string, done: boolean) {
   const a = await db.trainingAssignment.findUnique({ where: { id }, include: { employee: true } });
   if (!a) throw new AppError("Training record not found.", 404);
   if (!canSee(v, a.employee)) throw new AppError("This training record is not yours to update.", 403);

@@ -11,7 +11,7 @@ import { DataTable, type Column } from "@/components/ui/DataTable";
 import { PageHeader, StatusBadge } from "@/components/ui/primitives";
 
 export type EmployeeRow = {
-  id: number;
+  id: string;
   code: string;
   name: string;
   email: string;
@@ -33,7 +33,7 @@ export function EmployeesView({
   rows: EmployeeRow[];
   showBranchFilter: boolean;
   canManage: boolean;
-  branchList: { id: number; name: string }[];
+  branchList: { id: string; name: string }[];
 }) {
   const [adding, setAdding] = useState(false);
   const router = useRouter();

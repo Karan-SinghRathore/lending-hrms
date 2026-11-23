@@ -13,8 +13,8 @@ import { Empty, PageHeader, StatusBadge } from "@/components/ui/primitives";
 import type { LeaveBalance } from "@/services/leaves";
 
 export type LeaveRow = {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   name: string;
   code: string;
   branch: string;
@@ -31,7 +31,7 @@ export type LeaveRow = {
   appliedOn: string;
 };
 
-type Holiday = { id: number; date: string; name: string };
+type Holiday = { id: string; date: string; name: string };
 
 const typeLabel = (t: string) => LEAVE_TYPES[t as LeaveType]?.label ?? t;
 const dateRange = (r: { fromDate: string; toDate: string; halfDay: boolean }) =>
@@ -166,7 +166,7 @@ export function LeavesView({
   const router = useRouter();
   const [applying, setApplying] = useState(false);
   const [rejecting, setRejecting] = useState<LeaveRow | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState("ALL");
   const canApprove = role !== "EMPLOYEE";
   const [holidayDate, setHolidayDate] = useState<string | null>(null);

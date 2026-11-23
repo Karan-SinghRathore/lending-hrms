@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, DESIGNATIONS } from "@/lib/config";
-import { AppError, type Viewer } from "./viewer";
+import { AppError, type Viewer, oid } from "./viewer";
 
 const jobScope = (v: Viewer) => (v.role === "HR" ? {} : { branchId: v.branchId });
 
@@ -13,23 +13,23 @@ export async function listJobs(v: Viewer) {
   });
 }
 
-export async function createJob(v: Viewer, input: { title: string; branchId: number; openings: number }) {
+export async function createJob(v: Viewer, input: { title: string; branchId: string; openings: number }) {
   if (v.role !== "HR") throw new AppError("Only HR can open a position.", 403);
   if (!DESIGNATIONS[input.title]) throw new AppError("Choose the position.");
-  const branch = await db.branch.findUnique({ where: { id: Number(input.branchId) } });
+  const branch = await db.branch.findUnique({ where: { id: oid(input.branchId) } });
   if (!branch) throw new AppError("Choose a branch.");
   const openings = Number(input.openings);
   if (!Number.isInteger(openings) || openings < 1 || openings > 50) throw new AppError("Openings must be between 1 and 50.");
   return db.jobOpening.create({ data: { title: input.title, branchId: branch.id, openings } });
 }
 
-export async function setJobStatus(v: Viewer, id: number, status: string) {
+export async function setJobStatus(v: Viewer, id: string, status: string) {
   if (v.role !== "HR") throw new AppError("Only HR can close or reopen a position.", 403);
   if (status !== "OPEN" && status !== "CLOSED") throw new AppError("Unknown status.");
   return db.jobOpening.update({ where: { id }, data: { status } });
 }
 
-async function jobFor(v: Viewer, jobId: number) {
+async function jobFor(v: Viewer, jobId: string) {
   const job = await db.jobOpening.findUnique({ where: { id: jobId } });
   if (!job) throw new AppError("Position not found.", 404);
   if (v.role === "EMPLOYEE" || (v.role === "MANAGER" && job.branchId !== v.branchId)) throw new AppError("This position is not in your branch.", 403);
@@ -38,9 +38,9 @@ async function jobFor(v: Viewer, jobId: number) {
 
 export async function addCandidate(
   v: Viewer,
-  input: { jobId: number; name: string; phone: string; source: string; expectedCtc?: number; notes?: string },
+  input: { jobId: string; name: string; phone: string; source: string; expectedCtc?: number; notes?: string },
 ) {
-  const job = await jobFor(v, Number(input.jobId));
+  const job = await jobFor(v, oid(input.jobId));
   if (job.status !== "OPEN") throw new AppError("This position is closed.");
   const name = input.name?.trim();
   const phone = String(input.phone ?? "").replace(/\D/g, "");
@@ -54,7 +54,7 @@ export async function addCandidate(
   });
 }
 
-export async function updateCandidate(v: Viewer, id: number, input: { stage?: string; employeeId?: number }) {
+export async function updateCandidate(v: Viewer, id: string, input: { stage?: string; employeeId?: string }) {
   const c = await db.candidate.findUnique({ where: { id } });
   if (!c) throw new AppError("Candidate not found.", 404);
   await jobFor(v, c.jobId);
@@ -62,7 +62,7 @@ export async function updateCandidate(v: Viewer, id: number, input: { stage?: st
   if (input.employeeId !== undefined) {
     if (v.role !== "HR") throw new AppError("Only HR can add a hired candidate as an employee.", 403);
     if (c.stage !== "HIRED") throw new AppError("Mark the candidate as hired first.");
-    return db.candidate.update({ where: { id }, data: { employeeId: Number(input.employeeId) } });
+    return db.candidate.update({ where: { id }, data: { employeeId: oid(input.employeeId) } });
   }
 
   const stage = input.stage as (typeof CANDIDATE_STAGES)[number];
