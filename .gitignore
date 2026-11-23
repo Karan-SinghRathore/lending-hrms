@@ -46,3 +46,6 @@ next-env.d.ts
 /research_notes/
 /reports/
 /.mongo-dev/
+
+# local notes with database credentials
+/mongo-pass.txt
